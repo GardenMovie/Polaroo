@@ -1,0 +1,117 @@
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+public class GameManager : MonoBehaviour
+{
+    [Header("Audio Source")]
+    [SerializeField] public AudioSource MusicSource;
+    [SerializeField] public AudioSource SFXSource;
+
+    [Header("Audio Clip")]
+    public AudioClip backgroundMusic;
+    public bool soundOn = false;
+    public int MusicMute = 0;
+    public AudioClip clickIn;
+    public AudioClip clickOut;
+    public AudioClip finish;
+
+    [Header("Transição")]
+    public Animator transition;
+    public float transitionTime = 1f;
+
+    public static GameManager Instance;
+
+    [Header("Game Values")]
+    public int score;
+    public bool debugMode = false;
+    public int cardId = 0;
+
+    public int globeTargetIndex = 0;
+
+    public List<string> listWords;
+    public string selectedWord;
+    public List<Sprite> listImgs;
+    public Sprite selectedImg;
+    public List<int> listIDs = new List<int>();
+
+
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+        if (soundOn == true)
+        {
+            MusicSource.clip = backgroundMusic;
+
+            MusicSource.Play();
+        }
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        string cenaAtual = scene.name;
+        if (!debugMode)
+        {
+            cardId = Random.Range(0, 15);
+        }
+        selectedWord = listWords[cardId];
+        selectedWord = selectedWord.ToUpper();
+        selectedImg = listImgs[cardId];
+
+    }
+    void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    public void incrementIndex()
+    {
+        globeTargetIndex += 1;
+    }
+
+    void Start()
+    {
+        score = 0;
+    }
+
+    public void ChangeScene(string nomeCena)
+    {
+        // SceneManager.LoadScene(nomeCena);
+        StartCoroutine(ChangeSceneTransition(nomeCena));
+    }
+
+    System.Collections.IEnumerator ChangeSceneTransition(string nomeCena)
+    {
+        transition.SetTrigger("ChangeScene");
+
+        yield return new WaitForSeconds(transitionTime);
+
+        SceneManager.LoadScene(nomeCena);
+    }
+        
+
+    public void PlaySFX(AudioClip clip)
+    {
+        SFXSource.PlayOneShot(clip);
+    }
+
+    public void AddScore(int Value)
+    {
+        score += Value;
+    }
+
+}
